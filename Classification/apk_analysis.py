@@ -16,8 +16,8 @@ def main():
     - required deps -> install scikit learn (google it)
     - edit filepaths
     '''
-    good_path = '/home/josh/Documents/COSC/research/ml_malware/malware_data/goodPermissionsFinal.txt'
-    mal_path = '/home/josh/Documents/COSC/research/ml_malware/malware_data/malwarePermissionsFinal.txt'
+    good_path = '/home/osboxes/DeepLearningResearch/Data/goodPermissionsFinal.txt'
+    mal_path = '/home/osboxes/DeepLearningResearch/Data/malwarePermissionsFinal.txt'
 
     with open(good_path) as f:
         gdprm = f.readlines()
@@ -37,38 +37,38 @@ def main():
     time0 = timeit.default_timer()
     features = count_vect.fit_transform(perms)
     time1 = timeit.default_timer() #time to tokenize
-    print type(features)
-    print features.get_shape()
+    print (type(features))
+    print (features.get_shape())
     #print count_vect.get_feature_names()
-    print 'tokenize time: ' + str(time1-time0)
-    print '\n'
+    print ('tokenize time: ' + str(time1-time0))
+    print ('\n')
 
     #proportion of data to test on vs total
     ratios = [.8, .6, .4, .2]
 
-    print "BernoulliNB"
+    print ("BernoulliNB")
     for x in ratios:
         BNclf = BernoulliNB()
         test_model(BNclf, features, labels, x)
-        print'\n'
-    print '---------------------------\n'
-    print "MultiNomialNB"
+        print('\n')
+    print ('---------------------------\n')
+    print ("MultiNomialNB")
     for x in ratios:
         NBclf = MultinomialNB()
         test_model(NBclf, features, labels, x)
-        print '\n'
-    print '---------------------------\n'
-    print "DecisionTree"
+        print ('\n')
+    print ('---------------------------\n')
+    print ("DecisionTree")
     for x in ratios:
         DTclf = DecisionTreeClassifier(min_samples_split = 20)
         test_model(DTclf, features, labels, x)
-        print '\n'
-    print '---------------------------\n'
-    print "LogisticRegression"
+        print ('\n')
+    print ('---------------------------\n')
+    print ("LogisticRegression")
     for x in ratios:
         LRclf = LogisticRegression(C=10, solver='lbfgs')
         test_model(LRclf, features, labels, x)
-        print '\n'
+        print ('\n')
 
 
     #print "SVM"
@@ -96,7 +96,7 @@ def test_model(model, features, labels, test_size):
     recieves an instance of an untrained model plus features and labels. performs
     training on 5 splits of data at ratio specified by test size.
     '''
-    print 'training ratio: ' + str(1-test_size)
+    print ('training ratio: ' + str(1-test_size))
     sss = StratifiedShuffleSplit(n_splits=5, test_size=test_size)
     avg_acc = 0.0
     avg_true_pos = 0.0
@@ -145,37 +145,37 @@ def test_model(model, features, labels, test_size):
     avg_fneg = avg_fneg/5
     avg_train_time = avg_train_time/5
     avg_test_time = avg_test_time/5
-    print 'accuracy measures: '
-    print 'avg acc: ' + str(avg_acc)
-    print 'avg_true_pos: ' + str(avg_true_pos)
-    print 'avg_true_neg: ' + str(avg_true_neg)
-    print 'avg fpos: ' + str(avg_fpos)
-    print 'avg fneg: ' + str(avg_fneg)
+    print ('accuracy measures: ')
+    print ('avg acc: ' + str(avg_acc))
+    print ('avg_true_pos: ' + str(avg_true_pos))
+    print ('avg_true_neg: ' + str(avg_true_neg))
+    print ('avg fpos: ' + str(avg_fpos))
+    print ('avg fneg: ' + str(avg_fneg))
 
-    print '\nruntime measures: '
-    print 'avg train time: ' + str(avg_train_time)
-    print 'avg test time: ' + str(avg_test_time)
-    print '\n'
+    print ('\nruntime measures: ')
+    print ('avg train time: ' + str(avg_train_time))
+    print ('avg test time: ' + str(avg_test_time))
+    print ('\n')
     return
 
 #below function not used
-def full_results(labels, predictions):
-    i = 0
-    correct = 0
-    false_pos = 0
-    false_neg = 0
-    results = acc_stats()
-    while(i < len(labels)):
-        if(labels[i] == predictions[i]):
-            results.inc_correct()
-        elif(labels[i] == 1 and predictions[i] == 0):
-            results.inc_fneg()
-        elif(labels[i] == 0 and predictions[i] == 1):
-            results.inc_fpos()
-        else:
-            print 'shouldnt happen'
-        i+=1
-    results.print_stats()
+# def full_results(labels, predictions):
+#     i = 0
+#     correct = 0
+#     false_pos = 0
+#     false_neg = 0
+#     results = acc_stats()
+#     while(i < len(labels)):
+#         if(labels[i] == predictions[i]):
+#             results.inc_correct()
+#         elif(labels[i] == 1 and predictions[i] == 0):
+#             results.inc_fneg()
+#         elif(labels[i] == 0 and predictions[i] == 1):
+#             results.inc_fpos()
+#         else:
+#             print ('shouldnt happen')
+#         i+=1
+#     results.print_stats()
 
 
 if __name__ == "__main__":

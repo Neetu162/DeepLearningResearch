@@ -7,7 +7,7 @@ import sys
 
 
 def main():
-    sys.path.insert(0, 'C:/Users/jarre/OneDrive/Documents/Research/Fall2017Git/Classification')
+    sys.path.insert(0, '/home/osboxes/DeepLearningResearch/Classification')
     import keras_models
     epochs = 16
     batch_size = 10

@@ -24,9 +24,9 @@ def main():
     '''
     input_type = 'permissions'
 
-    good_path = '/home/josh/Documents/COSC/Research/APK_project/apk_repo/test_sets/large/v2/mal_badging_full_v2.txt'
-    mal_path = '/home/josh/Documents/COSC/Research/APK_project/apk_repo/test_sets/large/v2/benign_badging_full_v2.txt'
-    results_dir = '/home/josh/Documents/COSC/Research/APK_project/DeepLearningResearch/Results/shallowResults/imbalanced-'
+    good_path = '/home/osboxes/DeepLearningResearch/Data/mal_badging_full_v2.txt'
+    mal_path = '/home/osboxes/DeepLearningResearch/Data/benign_badging_full_v2.txt'
+    results_dir = '/home/osboxes/DeepLearningResearch/Results/shallowResults/imbalanced-'
 
 
     with open(good_path) as f:
@@ -54,7 +54,7 @@ def main():
         #token_pattern = 'android\.(?:hardware|permission)\.[^\']*'
         #token_pattern = "(?<=name=\')[^(?:p|h)]*(?:permission|hardware)[^\']*"
         token_pattern = "(?:\w|\.)+(?:permission|hardware).(?:\w|\.)+"
-    print token_pattern
+    print (token_pattern)
 
     #count_vect = CountVectorizer(input=u'content', analyzer=u'word', token_pattern=token_pattern)
     count_vect = CountVectorizer(analyzer=partial(regexp_tokenize, pattern=token_pattern))
@@ -62,54 +62,54 @@ def main():
     time0 = timeit.default_timer()
     data_features = count_vect.fit_transform(features)
     time1 = timeit.default_timer() #time to tokenize
-    print type(features)
-    print data_features.get_shape()
+    print (type(features))
+    print (data_features.get_shape())
     #for x in count_vect.get_feature_names():
     #    print x
-    print 'tokenize time: ' + str(time1-time0)
-    print '\n'
+    print ('tokenize time: ' + str(time1-time0))
+    print ('\n')
 
     #proportion of data to test on vs total
     ratios = [.8, .6, .4, .2]
     columns = ['avg_acc', 'fpos_rate', 'fneg_rate', 'precision', 'recall',
     'f1_score', 'avg_test_time', 'avg_train_time']
     indices = [.2,.4,.6,.8]
-    print "BernoulliNB"
+    print ("BernoulliNB")
     bNBdf=pandas.DataFrame(columns=columns)
-    print bNBdf
+    print (bNBdf)
     for x in ratios:
         model_name="BernoulliNB"
         BNclf = BernoulliNB()
         bNBdf = test_model(bNBdf, BNclf, data_features, labels, x)
         results_to_csv(bNBdf, model_name, results_dir, input_type)
-        print'\n'
-    print '---------------------------\n'
-    print "MultiNomialNB"
+        print('\n')
+    print ('---------------------------\n')
+    print ("MultiNomialNB")
     mnNBdf=pandas.DataFrame(columns=columns)#, index=indices)
     for x in ratios:
         model_name = "MultinomialNB"
         NBclf = MultinomialNB()
         mnNBdf = test_model(mnNBdf, NBclf, data_features, labels, x)
         results_to_csv(mnNBdf, model_name, results_dir, input_type)
-        print '\n'
-    print '---------------------------\n'
-    print "DecisionTree"
+        print ('\n')
+    print ('---------------------------\n')
+    print ("DecisionTree")
     dtdf=pandas.DataFrame(columns=columns)#, index=indices)
     for x in ratios:
         model_name = "DecisionTree"
         DTclf = DecisionTreeClassifier()#min_samples_split = 20)
         dtdf = test_model(dtdf, DTclf, data_features, labels, x)
         results_to_csv(dtdf, model_name, results_dir, input_type)
-        print '\n'
-    print '---------------------------\n'
-    print "LogisticRegression"
+        print ('\n')
+    print ('---------------------------\n')
+    print ("LogisticRegression")
     lgdf=pandas.DataFrame(columns=columns)#, index=indices)
     for x in ratios:
         model_name = "Logistic_Regression"
         LRclf = LogisticRegression(C=10, solver='lbfgs')
         lgdf = test_model(lgdf, LRclf, data_features, labels, x)
         results_to_csv(lgdf, model_name, results_dir, input_type)
-        print '\n'
+        print ('\n')
 
     '''# alternative to shuffle_split
     print "stratifiedKFolds"
@@ -129,7 +129,7 @@ def test_model(data_frame, model, features, labels, test_size):
     recieves an instance of an untrained model plus features and labels. performs
     training on 5 splits of data at ratio specified by test size.
     '''
-    print 'training ratio: ' + str(1-test_size)
+    print ('training ratio: ' + str(1-test_size))
     sss = StratifiedShuffleSplit(n_splits=5, test_size=test_size)
     avg_acc = 0.0
     true_pos = 0.0
@@ -166,9 +166,9 @@ def test_model(data_frame, model, features, labels, test_size):
         #print str(false_pos) + ' ' + str(true_pos)
 
         precision += float(true_pos)/float(true_pos+false_pos)
-        print 'precision ' + str(precision)
+        print ('precision ' + str(precision))
         recall += float(true_pos)/float(true_pos+false_neg)
-        print 'recall ' + str(recall)
+        print ('recall ' + str(recall))
         #f1_score += 2*((precision*recall)/(precision+recall))
         #print 'f1_score ' + str(f1_score)
 
@@ -210,15 +210,15 @@ def test_model(data_frame, model, features, labels, test_size):
     print(data_frame)
 
 
-    print 'accuracy measures: '
-    print 'avg acc: ' + str(avg_acc)
-    print 'avg fpos rate: ' + str(avg_fpos_rate)
-    print 'avg fneg rate: ' + str(avg_fneg_rate)
+    print ('accuracy measures: ')
+    print ('avg acc: ' + str(avg_acc))
+    print ('avg fpos rate: ' + str(avg_fpos_rate))
+    print ('avg fneg rate: ' + str(avg_fneg_rate))
 
-    print '\nruntime measures: '
-    print 'avg train time: ' + str(avg_train_time)
-    print 'avg test time: ' + str(avg_test_time)
-    print '\n'
+    print ('\nruntime measures: ')
+    print ('avg train time: ' + str(avg_train_time))
+    print ('avg test time: ' + str(avg_test_time))
+    print ('\n')
     return data_frame
 
 #below function not used
@@ -236,7 +236,7 @@ def full_results(labels, predictions):
         elif(labels[i] == 0 and predictions[i] == 1):
             results.inc_fpos()
         else:
-            print 'shouldnt happen'
+            print ('shouldnt happen')
         i+=1
     results.print_stats()
 
@@ -252,10 +252,10 @@ def results_to_csv(data_frame, model_name, target_dir, input_type):
 
     try:
         out_target = target_dir + model_name + '_' + input_type + '_' + month + '-' + day + '-' + hour + min + '.csv'
-        print out_target
+        print (out_target)
         outfile = open(out_target,'w+')
     except:
-        print 'HIT EXCEPTION'
+        print ('HIT EXCEPTION')
         out_target = model_name + month + day + hour + min + '.csv'
         outfile = open(out_target, 'w+')
     data_frame.to_csv(outfile, index=True)

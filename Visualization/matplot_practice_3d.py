@@ -6,12 +6,12 @@ from pylab import meshgrid
 import numpy as np
 
 def main():
-    csv_in = open("/home/josh/Documents/COSC/research/ml_malware/DeepLearningResearch/Results/deepResults/25OctTestMaster/epochBatchTrainoneLayer.csv", 'r')
+    csv_in = open("/home/osboxes/DeepLearningResearch/Results/deepResults/25OctTestMaster/epochBatchTrainoneLayer.csv", 'r')
     df = pandas.read_csv(csv_in)
 
-    batch = df.get("param_batch_size").as_matrix()
-    epoch = df.get("param_epochs").as_matrix()
-    score = df.get("mean_test_score").as_matrix()
+    batch = df.get("param_batch_size").values
+    epoch = df.get("param_epochs").values
+    score = df.get("mean_test_score").values
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')

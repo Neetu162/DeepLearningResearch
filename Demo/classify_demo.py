@@ -10,7 +10,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import confusion_matrix
 
 from keras.wrappers.scikit_learn import KerasClassifier
-from keras.layers import Merge, Dense, Dropout, Input, concatenate
+from keras.layers import Dense, Dropout, Input, concatenate
 from keras.models import Model
 from keras.models import Sequential
 from keras.constraints import maxnorm
@@ -19,9 +19,9 @@ from keras.utils import plot_model
 
 
 def main():
-    good_path = "/home/jmcgiff/Documents/research/DeepLearningResearch/Data/badging_med/mal_badging_med.txt"
+    good_path = "/home/osboxes/DeepLearningResearch/Data/badging_med/mal_badging_med.txt"
 
-    mal_path = "/home/jmcgiff/Documents/research/DeepLearningResearch/Data/badging_med/ben_badging_med.txt"
+    mal_path = "/home/osboxes/DeepLearningResearch/Data/badging_med/ben_badging_med.txt"
 
     tr = .80
     neurons = 32
@@ -56,7 +56,7 @@ def main():
         i += 1
 
     acc = calc_accuracy(cm)
-    print 'average accuracy was: ' + str(acc)
+    print ('average accuracy was: ' + str(acc))
 
     return
 
