@@ -9,9 +9,9 @@ def main():
     csv_in = open("dropoutWeight_oneLayer/weightedDropoutoneLayer.csv", 'r')
     df = pandas.read_csv(csv_in)
 
-    weight = df.get("param_weight_constraint").as_matrix()
-    dropout_rate = df.get("param_dropout_rate").as_matrix()
-    score = df.get("mean_test_score").as_matrix()
+    weight = df.get("param_weight_constraint").values
+    dropout_rate = df.get("param_dropout_rate").values
+    score = df.get("mean_test_score").values
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')

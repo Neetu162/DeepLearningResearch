@@ -4,7 +4,7 @@ import sys
 import argparse
 import datetime
 
-from .keras_models import create_binaryDecrease, create_fourDecrLayer, create_fourSameLayer, create_one_layer
+from keras_models import create_binaryDecrease, create_fourDecrLayer, create_fourSameLayer, create_one_layer
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import StratifiedShuffleSplit, cross_validate, GridSearchCV
 from sklearn.feature_extraction.text import CountVectorizer

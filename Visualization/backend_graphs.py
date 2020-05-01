@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 def main():
 
-    fourDecr_in = open("../Results/deepResults/AggregationCharts/FourDecrDifferentBackends.csv")
+    fourDecr_in = open("/home/osboxes/DeepLearningResearch/Results/deepResults/AggregationCharts/FourDecrDifferentBackends.csv")
     fourDecr_df = pandas.read_csv(fourDecr_in)
     fourDecr_df.columns = [strip_non_ascii(x) for x in fourDecr_df.columns]
 
@@ -24,7 +24,7 @@ def main():
     fourDecr_theanoTime = fourDecr_theano.get("fit_time")/60
     fourDecr_theanoAcc = fourDecr_theano.get("test_accuracy")
 
-    oneLayer_in = open("../Results/deepResults/AggregationCharts/oneLayerDifferentBackends.csv")
+    oneLayer_in = open("/home/osboxes/DeepLearningResearch/Results/deepResults/AggregationCharts/OneLayerDifferentBackends.csv")
     oneLayer_df = pandas.read_csv(oneLayer_in)
 
     oneLayer_tensor = oneLayer_df[oneLayer_df.backend == "tensorFlow"]
@@ -42,7 +42,7 @@ def main():
     oneLayer_theanoTime = oneLayer_theano.get("fit_time")/60
     oneLayer_theanoAcc = oneLayer_theano.get("test_accuracy")
 
-    fourSame_in = open("../Results/deepResults/AggregationCharts/FourSameDifferentBackends.csv")
+    fourSame_in = open("/home/osboxes/DeepLearningResearch/Results/deepResults/AggregationCharts/FourSameDifferentBackends.csv")
     fourSame_df = pandas.read_csv(fourSame_in)
 
     fourSame_tensor = fourSame_df[fourSame_df.backend == "tensorFlow"]

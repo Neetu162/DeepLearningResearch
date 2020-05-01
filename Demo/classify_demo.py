@@ -29,17 +29,21 @@ def main():
     epochs = 8
 
     perm_inputs, feat_inputs, labels = vectorize(good_path, mal_path)
+    print("returned from vectorize method" + str(perm_inputs) + "feat Inputs" + str(feat_inputs) + "labels" + str(labels))
     perm_width = int(len(perm_inputs[0]))
+    print("perm_width" + str(perm_width))
     feat_width = int(len(feat_inputs[0]))
+    print("feat_width" + str(feat_width))
     cm = np.zeros([2,2], dtype=np.int64)
     model = create_dualInputLarge(input_ratio=.125, neurons=neurons, perm_width=perm_width, \
     feat_width=feat_width)
     plot_model(model, to_file='model.png')
-    model.summary()
+   # model.summary()
     time.sleep(10)
 
     sss = StratifiedShuffleSplit(n_splits=5, random_state=0, test_size=1-tr)
     i = 0
+    print("stratified shuffle split")
     for train_index, test_index in sss.split(perm_inputs, labels):
         perm_train, perm_test = perm_inputs[train_index], perm_inputs[test_index]
         feat_train, feat_test = feat_inputs[train_index], feat_inputs[test_index]
@@ -50,8 +54,11 @@ def main():
 
         print('\nsplit %i' %i)
         model.fit([perm_train, feat_train], labels_train, epochs=epochs, batch_size=batch)
+        print("model trained")
         labels_pred = model.predict([perm_test, feat_test], batch_size=batch)
+        print("prediction made: " +str(labels_pred))
         labels_pred = (labels_pred > 0.5)
+        print("labels_pred" +str(labels_pred))
         cm = cm + confusion_matrix(labels_test, labels_pred)
         i += 1
 
@@ -78,8 +85,11 @@ def vectorize(good_path, mal_path):
     labels = np.array([])
     for x in ben_samples:
         labels = np.append(labels, 0)
+    print("benign sample labels" + str(labels))
     for x in mal_samples:
         labels = np.append(labels, 1)
+    print("benign + malware sample labels" + str(labels))
+    
 
     perm_pattern = "(?:\w|\.)+(?:permission).(?:\w|\.)+"
     feat_pattern = "(?:\w|\.)+(?:hardware).(?:\w|\.)+"
@@ -90,10 +100,12 @@ def vectorize(good_path, mal_path):
     perm_inputs_sparse = perm_vect.fit_transform(samples)
     perm_inputs_dense = perm_inputs_sparse.todense()
     perm_inputs = np.array(perm_inputs_dense)
+    print("got perm_inputs")
 
     feat_inputs_sparse = feat_vect.fit_transform(samples)
     feat_inputs_dense = feat_inputs_sparse.todense()
     feat_inputs = np.array(feat_inputs_dense)
+    print("got feat_inputs")
 
     return perm_inputs, feat_inputs, labels
 
@@ -101,11 +113,17 @@ def create_dualInputLarge(input_ratio, feat_width, perm_width, neurons=32, dropo
     '''this model performs additional analysis with layers after concatenation'''
     perm_width=int(perm_width)
     perm_input = Input(shape=(perm_width,), name='permissions_input')
+    print("perm input after Input function: "+ str(perm_input))
+    
     x = Dense(neurons, activation='relu')(perm_input)
+    print("X:" + str(x))
     x = Dropout(dropout_rate)(x)
+    print("X:" + str(x))
     x = Dense(neurons, activation='relu')(x)
+    print("X:" + str(x))
     feat_input = Input(shape=(feat_width,), name='features_input')
     y = Dense(int(neurons*input_ratio), activation='relu')(feat_input)
+    print("y:" + str(y))
     x = concatenate([x, y])
     x = Dense(int((neurons+(neurons*input_ratio))/2), activation='relu')(x)
     x = Dropout(dropout_rate)(x)

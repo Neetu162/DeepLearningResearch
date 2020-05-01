@@ -10,13 +10,13 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 def main():
 
-    data_dir = '/home/jmcgiff/Documents/research/DeepLearningResearch/Data/'
+    data_dir = '/home/osboxes/DeepLearningResearch/Data/'
     #ben_data = data_dir + 'badging_med/ben_badging_med.txt'
     #mal_data = data_dir + 'badging_med/mal_badging_med.txt'
     mal_data = data_dir + 'mal_badging_full_v2.txt'
     ben_data = data_dir + 'benign_badging_full_v2.txt'
     old_ben = data_dir + 'goodPermissionsFinal.txt'
-    old_bal = data_dir + 'malwarePermissionsFinal.txt'
+    old_mal = data_dir + 'malwarePermissionsFinal.txt'
 
     vectorize(ben_data, old_ben, ben_data, old_ben)
 
@@ -29,10 +29,10 @@ def vectorize(good_path, old_ben, mal_path, old_mal):
     with open(old_ben) as f:
         ben_old = f.readlines()
     with open(old_mal) as f:
-        mal_old = f.readlines
+        mal_old = f.readlines()
 
     new_samples = ben_new + mal_new
-    old_samples = ben_old + ben_new
+    old_samples = ben_old + mal_old
 
     perm_pattern = "(?:\w|\.)+(?:permission).(?:\w|\.)+"
     feat_pattern = "(?:\w|\.)+(?:hardware).(?:\w|\.)+"
@@ -54,10 +54,10 @@ def vectorize(good_path, old_ben, mal_path, old_mal):
 
     #old_inputs = old_vect.fit_transform(old_samples)
 
-    print "new perms vocab:" + str(new_perms.shape)
-    print "comb vocab: " + str(comb.shape)
-    print "feat vocab: " + str(feats.shape)
-    #print "old perms vocab:" + str(old_inputs.shape)
+    print ("new perms vocab:" + str(new_perms.shape))
+    print ("comb vocab: " + str(comb.shape))
+    print ("feat vocab: " + str(feats.shape))
+    #print ("old perms vocab:" + str(old_inputs.shape))
 
 
 

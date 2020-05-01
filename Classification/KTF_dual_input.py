@@ -3,16 +3,17 @@ import timeit
 import pandas as pd
 import datetime
 import argparse
+import sys
 
 from functools import partial
 from nltk.tokenize.regexp import regexp_tokenize
 from sklearn.model_selection import StratifiedShuffleSplit, cross_validate, GridSearchCV, StratifiedKFold
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import confusion_matrix
-from .keras_models import create_one_layer, create_dualInputSimple, create_dualInputLarge
+from keras_models import create_one_layer, create_dualInputSimple, create_dualInputLarge
 
 from keras.wrappers.scikit_learn import KerasClassifier
-from keras.layers import Merge, Dense, Dropout, Input, concatenate
+from keras.layers import Dense, Dropout, Input, concatenate
 from keras.models import Model
 from keras.models import Sequential
 from keras.constraints import maxnorm
@@ -23,15 +24,16 @@ def main():
     args = parse_arguments()
 
     perm_inputs, feat_inputs, comb_inputs, labels = vectorize(args["good_path"], args["mal_path"])
+    print("returned from vectorize method")
     perm_width = len(perm_inputs[0])
     feat_width = len(feat_inputs[0])
     comb_width = len(comb_inputs[0])
 
-
     if args["mode"] == "final":
-        print "final test all models and training ratios"
+        print ("final test all models and training ratios")
         final_test(args, perm_inputs, feat_inputs, comb_inputs, labels)
     else:
+        print ("grid search")
         grid_search(args, perm_inputs, feat_inputs, comb_inputs, labels)
 
     return
@@ -41,9 +43,10 @@ def vectorize(good_path, mal_path):
     accepts the filepath to the benign and malicious data files. Then tokenizes
     according to regular expressions below and creates matching labels.
     '''
-
+    print("reading content of file:" + good_path)
     with open(good_path) as f:
         ben_samples = f.readlines()
+    print("reading content of file: " + mal_path)
     with open(mal_path) as f:
         mal_samples = f.readlines()
 
@@ -54,30 +57,35 @@ def vectorize(good_path, mal_path):
         labels = np.append(labels, 0)
     for x in mal_samples:
         labels = np.append(labels, 1)
-
+    print("Done with appending labels")
+    
     #regular expressions for each desired data type
     perm_pattern = "(?:\w|\.)+(?:permission).(?:\w|\.)+"
     feat_pattern = "(?:\w|\.)+(?:hardware).(?:\w|\.)+"
     comb_pattern = "(?:\w|\.)+(?:hardware|permission).(?:\w|\.)+"
-
+    
     perm_vect = CountVectorizer(analyzer=partial(regexp_tokenize, pattern=perm_pattern))
+    print("populated perm_vect")
     feat_vect = CountVectorizer(analyzer=partial(regexp_tokenize, pattern=feat_pattern))
+    print("populated feat_vect")
     comb_vect = CountVectorizer(analyzer=partial(regexp_tokenize, pattern=comb_pattern))
-
+    print("populated comb_vect")
     time0 = timeit.default_timer()
     #each vectorizer tokenizes via fit_transform() and then is converted to a dense vector
     perm_inputs_sparse = perm_vect.fit_transform(samples)
     perm_inputs_dense = perm_inputs_sparse.todense()
     perm_inputs = np.array(perm_inputs_dense)
-
+    print("np.array(perm_inputs_dense) completed")
     feat_inputs_sparse = feat_vect.fit_transform(samples)
     feat_inputs_dense = feat_inputs_sparse.todense()
     feat_inputs = np.array(feat_inputs_dense)
-
+    print("np.array(feat_inputs_dense) completed")
     comb_inputs_sparse = comb_vect.fit_transform(samples)
+    print("sparsed comb_inputs")
     comb_inputs_dense = comb_inputs_sparse.todense()
+    print("comb_inputs to dense")
     comb_inputs = np.array(comb_inputs_dense)
-
+    print("np.array(comb_inputs_dense) completed")
     return perm_inputs, feat_inputs, comb_inputs, labels
 
 def final_test(args, perm_inputs, feat_inputs, comb_inputs, labels):
@@ -88,7 +96,7 @@ def final_test(args, perm_inputs, feat_inputs, comb_inputs, labels):
     perm_width = int(len(perm_inputs[0]))
     feat_width = int(len(feat_inputs[0]))
     comb_width = int(len(comb_inputs[0]))
-    print 'perm width: ' + str(perm_width)
+    print ('perm width: ' + str(perm_width))
     input_ratios = args["input_ratio"]
     models = args["model"]
     size = 32
@@ -100,9 +108,10 @@ def final_test(args, perm_inputs, feat_inputs, comb_inputs, labels):
     #models = ('oneLayer_comb', 'oneLayer_feat', 'oneLayer_perm', 'dual_simple', 'dual_large')
 
     for m in models:
-        print m
+        print (m)
         data = []
         for r in args["train_ratio"]:
+            print("the value of r:" + r )
             percent=float(r)/100
             #stratified shuffle split used for cross validation
             sss = StratifiedShuffleSplit(n_splits=5, random_state=0, test_size=1-percent)
@@ -117,7 +126,7 @@ def final_test(args, perm_inputs, feat_inputs, comb_inputs, labels):
                 labels_train, labels_test = labels[train_index], labels[test_index]
 
                 if m == "oneLayer_comb":
-                    print 'oneLayer_comb'
+                    print ('oneLayer_comb')
                     model = create_one_layer(optimizer='nadam', data_width=comb_width, neurons=32)
                     epoch = 32
                     batch = 32
@@ -128,20 +137,20 @@ def final_test(args, perm_inputs, feat_inputs, comb_inputs, labels):
                     time2 = timeit.default_timer()
 
                 elif m == "oneLayer_perm":
-                    print 'oneLayer_perm'
+                    print ('oneLayer_perm')
                     model = create_one_layer(optimizer='nadam', data_width=perm_width, neurons=32)
                     batch = 32
                     epoch = 16
                     time0 = timeit.default_timer()
                     model.fit(perm_train, labels_train, epochs=epoch, batch_size=batch)
                     time1 = timeit.default_timer()
-                    print time1-time0
+                    print (time1-time0)
                     labels_pred = model.predict(perm_test, batch_size=batch)
                     time2 = timeit.default_timer()
-                    print time2-time1
+                    print (time2-time1)
 
                 elif m == "oneLayer_feat":
-                    print 'oneLayer_feat'
+                    print ('oneLayer_feat')
                     model = create_one_layer(optimizer='nadam', data_width=feat_width, neurons=32)
                     batch = 16
                     epoch = 32
@@ -152,14 +161,14 @@ def final_test(args, perm_inputs, feat_inputs, comb_inputs, labels):
                     time2 = timeit.default_timer()
 
                 elif m == "dual_simple":
-                    print 'dual_simple'
+                    print ('dual_simple')
                     model = create_dualInputSimple(input_ratio=.125, neurons=32, perm_width=perm_width, feat_width=feat_width)
                     batch = 16
                     epoch = 32
                     ir = .125
                     print("args: batch=%i, epochs=%i, ir=%f, perm_width=%i, feat_width=%i" % (batch, epoch, ir, perm_width, feat_width))
-                    print type(perm_width)
-                    print type(feat_width)
+                    print (type(perm_width))
+                    print (type(feat_width))
                     model = create_dualInputSimple(input_ratio=ir, neurons=size, \
                     perm_width=perm_width, feat_width=feat_width)
                     time0 = timeit.default_timer()
@@ -169,7 +178,7 @@ def final_test(args, perm_inputs, feat_inputs, comb_inputs, labels):
                     time2 = timeit.default_timer()
 
                 elif m == "dual_large":
-                    print 'dual_large'
+                    print ('dual_large')
                     model = create_dualInputLarge(input_ratio=.125, neurons=32, perm_width=perm_width, feat_width=feat_width)
                     batch = 128
                     epoch = 32
@@ -200,7 +209,7 @@ def final_test(args, perm_inputs, feat_inputs, comb_inputs, labels):
             [m, size, r, ir, epoch, batch, acc, prec, rec, f1, avg_train_time, avg_test_time])))
 
 
-        print 'saving results for model: ' + str(m)
+        print ('saving results for model: ' + str(m))
         save_results(data, m)
 
 def grid_search(args, perm_inputs, feat_inputs, comb_inputs, labels):
@@ -227,14 +236,14 @@ def grid_search(args, perm_inputs, feat_inputs, comb_inputs, labels):
 
         data = []
         if m in ["oneLayer_perm", "oneLayer_feat", "oneLayer_comb"]:
-            print 'single bool set'
+            print ('single bool set')
             single = True
         else:
             single = False
 
         for r in args["train_ratio"]:
             percent=float(r)/100
-            print percent
+            print (percent)
             sss = StratifiedShuffleSplit(n_splits=5, random_state=0, test_size=1-percent)
             for epoch in epochs:
                 for batch in batch_size:
@@ -242,8 +251,8 @@ def grid_search(args, perm_inputs, feat_inputs, comb_inputs, labels):
                         cm = np.zeros([2,2], dtype=np.int64)
 
                         if(single):
-                            print 'model: ' + str(m) + ' tr: ' + str(r) + ' epochs: ' + str(epoch) + ' bs: ' \
-                            + str(batch) + ' n: ' + str(size)
+                            print ('model: ' + str(m) + ' tr: ' + str(r) + ' epochs: ' + str(epoch) + ' bs: ' \
+                            + str(batch) + ' n: ' + str(size))
                             for train_index, test_index in sss.split(perm_inputs, labels):
                                 perm_train, perm_test = perm_inputs[train_index], perm_inputs[test_index]
                                 feat_train, feat_test = feat_inputs[train_index], feat_inputs[test_index]
@@ -258,17 +267,17 @@ def grid_search(args, perm_inputs, feat_inputs, comb_inputs, labels):
                                     model = create_one_layer(optimizer='nadam', data_width=comb_width, neurons=size)
 
                                 if m == "oneLayer_perm":
-                                    print "single_input: " + str(m)
+                                    print ("single_input: " + str(m))
                                     model.fit(perm_train, labels_train, epochs=epoch, batch_size=batch)
                                     labels_pred = model.predict(perm_test, batch_size=batch)
 
                                 elif m == "oneLayer_feat":
-                                    print "single_input: " + str(m)
+                                    print ("single_input: " + str(m))
                                     model.fit(feat_train, labels_train, epochs=epoch, batch_size=batch)
                                     labels_pred = model.predict(feat_test, batch_size=batch)
 
                                 elif m == "oneLayer_comb":
-                                    print "single_input: " + str(m)
+                                    print ("single_input: " + str(m))
                                     model.fit(comb_train, labels_train, epochs=epoch, batch_size=batch)
                                     labels_pred = model.predict(comb_test, batch_size=batch)
                                 labels_pred = (labels_pred > 0.5)
@@ -284,11 +293,11 @@ def grid_search(args, perm_inputs, feat_inputs, comb_inputs, labels):
 
                         else:
                             #else block added to include input_ratio as parameter for dual_input models
-                            print 'ENTERED ELSE - MULTI'
+                            print ('ENTERED ELSE - MULTI')
 
                             for ir in input_ratios:
-                                print 'model: ' + str(m) + ' tr: ' + str(r) + ' epochs: ' + str(epoch) + ' bs: ' \
-                                + str(batch) + ' n: ' + str(size)
+                                print ('model: ' + str(m) + ' tr: ' + str(r) + ' epochs: ' + str(epoch) + ' bs: ' \
+                                + str(batch) + ' n: ' + str(size))
                                 for train_index, test_index in sss.split(perm_inputs, labels):
                                     perm_train, perm_test = perm_inputs[train_index], perm_inputs[test_index]
                                     feat_train, feat_test = feat_inputs[train_index], feat_inputs[test_index]
@@ -304,7 +313,7 @@ def grid_search(args, perm_inputs, feat_inputs, comb_inputs, labels):
                                         model = create_dualInputLarge(dropout_rate=.1, neurons=size,\
                                         input_ratio=ir, perm_width=perm_width, feat_width=feat_width)
 
-                                    print "multi_input: " + str(m)
+                                    print ("multi_input: " + str(m))
                                     model.fit([perm_train, feat_train], labels_train, epochs=epoch, batch_size=batch)
                                     labels_pred = model.predict([perm_test, feat_test], batch_size=batch)
 
@@ -321,7 +330,7 @@ def grid_search(args, perm_inputs, feat_inputs, comb_inputs, labels):
                                 [m, size, r, ir, epoch, batch, acc, prec, rec, f1])))
 
 
-        print 'saving results for model: ' + str(m)
+        print ('saving results for model: ' + str(m))
         save_results(data, m)
     return
 
@@ -334,7 +343,7 @@ def save_results(data, modelName):
 
     df = pd.DataFrame(data)
     try:
-        path1 = '/home/hduser/DeepLearningResearch/Results/deepResults/multi_input/final_test/' + modelName + month + day + '-' + hour + ':' + min + '.csv'
+        path1 = '/home/osboxes/DeepLearningResearch/Results/deepResults/multi_input/final_test/' + modelName + month + day + '-' + hour + ':' + min + '.csv'
         file1 = open(path1, "w+")
     except:
         path1 = "gridSearch" + modelName + ".csv"
