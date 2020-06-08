@@ -19,6 +19,7 @@ from keras.utils import plot_model
 
 
 def main():
+
     good_path = "/home/osboxes/DeepLearningResearch/Data/badging_med/mal_badging_med.txt"
 
     mal_path = "/home/osboxes/DeepLearningResearch/Data/badging_med/ben_badging_med.txt"
