@@ -2,10 +2,10 @@
 #takes a directory as an argument
 #will create final fomratted text file in target DecisionTreeClassifier
 
-target=${1%/}
+target=/home/osboxes/android-malware
 rm $target/{perm_errors.txt,perm1.txt,perm2.txt,perm_final.txt} 2> /dev/null
-
-for file in $target/*.apk; do
+find $target -type f -name "*.apk" -print0 | while read -d $'\0' file
+do
     aapt d permissions "$file" 2>> $target/perm_errors.txt 1>> $target/perm1.txt
     tr '\n' ' ' < $target/perm1.txt > $target/perm2.txt
     cat $target/perm2.txt | sed 's/package:/\n/g' > $target/perm_final.txt

@@ -48,7 +48,8 @@ def main():
         perm_train, perm_test = perm_inputs[train_index], perm_inputs[test_index]
         feat_train, feat_test = feat_inputs[train_index], feat_inputs[test_index]
         labels_train, labels_test = labels[train_index], labels[test_index]
-
+        print ("perm_width: " + str(perm_width))
+        print ("feat_width: " + str(feat_width))
         model = create_dualInputLarge(input_ratio=.125, neurons=neurons, perm_width=perm_width, \
         feat_width=feat_width)
 
@@ -132,6 +133,7 @@ def create_dualInputLarge(input_ratio, feat_width, perm_width, neurons=32, dropo
     model = Model(inputs=[perm_input, feat_input], outputs=output)
     model.compile(loss='binary_crossentropy', optimizer='nadam', metrics=['accuracy'])
     return model
+
 
 if __name__ == "__main__":
     main()
