@@ -1,6 +1,7 @@
 import numpy as np
 import timeit
 import time
+import pandas
 import pydot, graphviz
 
 from functools import partial
@@ -17,6 +18,8 @@ from keras.constraints import maxnorm
 from keras.optimizers import Nadam
 from keras.utils import plot_model
 
+def get_model(model):
+    return model
 
 def main():
 
@@ -25,9 +28,9 @@ def main():
     mal_path = "/home/osboxes/DeepLearningResearch/Data/badging_med/ben_badging_med.txt"
 
     tr = .80
-    neurons = 32
-    batch = 32
-    epochs = 8
+    neurons = 20
+    batch = 100
+    epochs = 10
 
     perm_inputs, feat_inputs, labels = vectorize(good_path, mal_path)
     print("returned from vectorize method" + str(perm_inputs) + "feat Inputs" + str(feat_inputs) + "labels" + str(labels))
@@ -42,7 +45,7 @@ def main():
    # model.summary()
     time.sleep(10)
 
-    sss = StratifiedShuffleSplit(n_splits=5, random_state=0, test_size=1-tr)
+    sss = StratifiedShuffleSplit(n_splits=1, random_state=0, test_size=1-tr)
     i = 0
     print("stratified shuffle split")
     for train_index, test_index in sss.split(perm_inputs, labels):
@@ -66,7 +69,25 @@ def main():
 
     acc = calc_accuracy(cm)
     print ('average accuracy was: ' + str(acc))
-
+    
+    precision = calc_precision(cm)
+    print('Average precision was: ' + str(precision))
+    
+    recall = cal_recall(cm)
+    print('Average recall value is: ' + str(recall))
+    
+    model = KerasClassifier(build_fn=get_model(model))
+    
+    scoring = ['precision', 'accuracy', 'recall', 'f1']
+    perm_inputs_1 = perm_inputs
+    cv_result = cross_validate(model, perm_inputs_1, cv=5, return_train_score=True, n_jobs=1)
+    df = pandas.DataFrame(cv_result)
+    
+    path1 = '/home/osboxes/DeepLearningResearch/Demo/test' + '.csv'
+    file1 = open(path1, "a+")
+    df.to_csv(file1, index=True)
+    file1.close()
+    
     return
 
 def calc_accuracy(cm):
@@ -74,6 +95,16 @@ def calc_accuracy(cm):
     TN = float(cm[0][0])
     n_samples = cm.sum()
     return (TP+TN)/n_samples
+
+def calc_precision(cm):
+    TP = float(cm[1][1])
+    FP = float(cm[1][0])
+    return TP/(TP+FP)
+
+def cal_recall(cm):
+    TP = float(cm[1][1])
+    FN = float(cm[0][1])
+    return TP/(TP + FN)
 
 def vectorize(good_path, mal_path):
 
@@ -111,7 +142,7 @@ def vectorize(good_path, mal_path):
 
     return perm_inputs, feat_inputs, labels
 
-def create_dualInputLarge(input_ratio, feat_width, perm_width, neurons=32, dropout_rate=0.1):
+def create_dualInputLarge(input_ratio, feat_width, perm_width, neurons=32, dropout_rate=0.3):
     '''this model performs additional analysis with layers after concatenation'''
     perm_width=int(perm_width)
     perm_input = Input(shape=(perm_width,), name='permissions_input')

@@ -4,7 +4,7 @@ import sys
 import argparse
 import datetime
 
-from keras_models import create_binaryDecrease, create_fourDecrLayer, create_fourSameLayer, create_one_layer
+from .keras_models import create_binaryDecrease, create_fourDecrLayer, create_fourSameLayer, create_one_layer
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import StratifiedShuffleSplit, cross_validate, GridSearchCV
 from sklearn.feature_extraction.text import CountVectorizer
@@ -106,14 +106,14 @@ def vectorize(good_path, mal_path, adverse):
 # Method for a standard test -- Not Grid Search
 def full_run(modelName, features, labels, train_ratio, args):
     # Get Vars from input args
-    epochs = args["epochs"][0]
-    batch_size = args["batch_size"][0]
-    neurons = args["neurons"][0]
-    optimizer = args["optimizer"][0]
-    weight_constraint = args["weight_constraint"][0]
-    dropout_rate = args["dropout"][0]//100
+    epochs = int(args["epochs"][0])
+    batch_size = int(args["batch_size"])
+    neurons = int(args["neurons"])
+    optimizer = args["optimizer"]
+    weight_constraint = int(args["weight_constraint"])
+    dropout_rate = int(args["dropout"])//100
     percent = float(train_ratio) / 100
-    splits = args["splits"]
+    splits = int(args["splits"])
 
     #model_params = dict(batch_size=batch_size, epochs=epochs, neurons=neurons, optimizer=optimizer,
     #                    weight_constraint=weight_constraint, dropout_rate=dropout_rate)
@@ -360,3 +360,4 @@ def parse_arguments():
 
 if __name__ == "__main__":
     main()
+

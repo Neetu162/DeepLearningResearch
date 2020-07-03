@@ -1,0 +1,3 @@
+
+export JOBLIB_TEMP_FOLDER=/tmp
+python KTFBinClass.py -gp /home/osboxes/DeepLearningResearch/Data/goodPermissionsFinal_test_1.txt -mp /home/osboxes/DeepLearningResearch/Data/malwarePermissionsFinal_test_1.txt -tr 60 -model fourDecr

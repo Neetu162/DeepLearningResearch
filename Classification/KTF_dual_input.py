@@ -10,7 +10,7 @@ from nltk.tokenize.regexp import regexp_tokenize
 from sklearn.model_selection import StratifiedShuffleSplit, cross_validate, GridSearchCV, StratifiedKFold
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import confusion_matrix
-from keras_models import create_one_layer, create_dualInputSimple, create_dualInputLarge
+from .keras_models import create_one_layer, create_dualInputSimple, create_dualInputLarge
 
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.layers import Dense, Dropout, Input, concatenate

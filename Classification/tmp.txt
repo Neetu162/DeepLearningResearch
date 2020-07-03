@@ -1,0 +1,1 @@
+In [1]: runfile('/home/osboxes/DeepLearningResearch/Classification/KTFBinClass.py', args='-gp /home/osboxes/DeepLearningResearch/Data/goodPermissionsFinal.txt -mp /home/osboxes/DeepLearningResearch/Data/malwarePermissionsFinal.txt -tr 60 -model fourDecr', wdir='/home/osboxes/DeepLearningResearch/Classification'
