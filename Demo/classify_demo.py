@@ -99,7 +99,10 @@ def main():
     
     scoring = ['precision', 'accuracy', 'recall', 'f1']
     perm_inputs_1 = perm_inputs
+    print("creating the loaded model")
     loaded_model = KerasClassifier(build_fn=get_model(model))
+    print("calling the cross_validate method")
+    
     cv_result = cross_validate(loaded_model, perm_inputs_1, labels, cv=5, return_train_score=True, n_jobs=1)
     df = pandas.DataFrame(cv_result)
     
