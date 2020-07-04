@@ -1,8 +1,34 @@
+import pickle
+import tempfile
+from tensorflow.keras.models import Sequential, load_model, save_model, Model
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.layers import Dropout, Input, concatenate
+from tensorflow.keras.utils import plot_model
+from tensorflow.python.keras.layers import deserialize, serialize
+from tensorflow.python.keras.saving import saving_utils
+
+def unpack(model, weights):
+    restored_model = deserialize(model)
+    restored_model.set_weights(weights)
+    return restored_model
+
+# Hotfix function
+def make_keras_picklable():
+
+    def __reduce__(self):
+        model_metadata = saving_utils.model_metadata(self)
+        model = serialize(self)
+        weights = self.get_weights()
+        return (unpack, (model, weights))
+
+    cls = Model
+    cls.__reduce__ = __reduce__
+make_keras_picklable()
 import numpy as np
-import timeit
 import time
 import pandas
-import pydot, graphviz
+
 
 from functools import partial
 from nltk.tokenize.regexp import regexp_tokenize
@@ -10,13 +36,7 @@ from sklearn.model_selection import StratifiedShuffleSplit, cross_validate, Grid
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import confusion_matrix
 
-from keras.wrappers.scikit_learn import KerasClassifier
-from keras.layers import Dense, Dropout, Input, concatenate
-from keras.models import Model
-from keras.models import Sequential
-from keras.constraints import maxnorm
-from keras.optimizers import Nadam
-from keras.utils import plot_model
+
 
 def get_model(model):
     return model
@@ -76,11 +96,11 @@ def main():
     recall = cal_recall(cm)
     print('Average recall value is: ' + str(recall))
     
-    model = KerasClassifier(build_fn=get_model(model))
     
     scoring = ['precision', 'accuracy', 'recall', 'f1']
     perm_inputs_1 = perm_inputs
-    cv_result = cross_validate(model, perm_inputs_1, cv=5, return_train_score=True, n_jobs=1)
+    loaded_model = KerasClassifier(build_fn=get_model(model))
+    cv_result = cross_validate(loaded_model, perm_inputs_1, labels, cv=5, return_train_score=True, n_jobs=1)
     df = pandas.DataFrame(cv_result)
     
     path1 = '/home/osboxes/DeepLearningResearch/Demo/test' + '.csv'
