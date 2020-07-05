@@ -41,7 +41,7 @@ def main():
     SGD_neurons = SGD_df.get("param_neurons")
     SGD_score = SGD_df.get("mean_test_score")
 
-    plt.figure(1)
+    plt.figure(20)
     #create line for each optimizer
     plt.plot(adadelta_neurons, adadelta_score, marker='*', linewidth=3, markersize=13,label='adadelta')
     plt.plot(adamax_neurons, adamax_score ,marker='o', linewidth=3, markersize=13,label='adamax')

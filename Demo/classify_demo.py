@@ -7,9 +7,17 @@ from tensorflow.keras.layers import Dropout, Input, concatenate
 from tensorflow.keras.utils import plot_model
 from tensorflow.python.keras.layers import deserialize, serialize
 from tensorflow.python.keras.saving import saving_utils
+from tensorflow.keras.callbacks import CSVLogger
+from tensorflow.keras import metrics
 
-def unpack(model, weights):
+def unpack(model, training_config, weights):
     restored_model = deserialize(model)
+    if training_config is not None:
+        restored_model.compile(
+            **saving_utils.compile_args_from_training_config(
+                training_config
+            )
+        )
     restored_model.set_weights(weights)
     return restored_model
 
@@ -18,12 +26,14 @@ def make_keras_picklable():
 
     def __reduce__(self):
         model_metadata = saving_utils.model_metadata(self)
+        training_config = model_metadata.get("training_config", None)
         model = serialize(self)
         weights = self.get_weights()
-        return (unpack, (model, weights))
+        return (unpack, (model, training_config, weights))
 
     cls = Model
     cls.__reduce__ = __reduce__
+
 make_keras_picklable()
 import numpy as np
 import time
@@ -32,14 +42,15 @@ import pandas
 
 from functools import partial
 from nltk.tokenize.regexp import regexp_tokenize
-from sklearn.model_selection import StratifiedShuffleSplit, cross_validate, GridSearchCV, StratifiedKFold
+from sklearn.model_selection import StratifiedShuffleSplit, cross_validate
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import confusion_matrix
 
 
 
 def get_model(model):
-    return model
+    tempmodel = model
+    return tempmodel
 
 def main():
 
@@ -48,68 +59,72 @@ def main():
     mal_path = "/home/osboxes/DeepLearningResearch/Data/badging_med/ben_badging_med.txt"
 
     tr = .80
-    neurons = 20
     batch = 100
     epochs = 10
 
     perm_inputs, feat_inputs, labels = vectorize(good_path, mal_path)
     print("returned from vectorize method" + str(perm_inputs) + "feat Inputs" + str(feat_inputs) + "labels" + str(labels))
     perm_width = int(len(perm_inputs[0]))
-    print("perm_width" + str(perm_width))
+    print("perm_width: " + str(perm_width))
     feat_width = int(len(feat_inputs[0]))
-    print("feat_width" + str(feat_width))
+    print("feat_width: " + str(feat_width))
+    
     cm = np.zeros([2,2], dtype=np.int64)
-    model = create_dualInputLarge(input_ratio=.125, neurons=neurons, perm_width=perm_width, \
-    feat_width=feat_width)
-    plot_model(model, to_file='model.png')
-   # model.summary()
-    time.sleep(10)
+    neurons = [10, 20, 30, 40]
+    optimizers=['nadam','adam','RMSprop', 'SGD']
+    for neuronVar in neurons:
+        for optimizerVar in optimizers:
+            model = create_dualInputLarge(input_ratio=.125, neurons=neuronVar, perm_width=perm_width, feat_width=feat_width, optimizer=optimizerVar)
+            plot_model(model, to_file='model.png')
+           # model.summary()
+            time.sleep(1)
+        
+            sss = StratifiedShuffleSplit(n_splits=1, random_state=0, test_size=1-tr)
+            i = 0
+            print("stratified shuffle split")
+            for train_index, test_index in sss.split(perm_inputs, labels):
+                perm_train, perm_test = perm_inputs[train_index], perm_inputs[test_index]
+                feat_train, feat_test = feat_inputs[train_index], feat_inputs[test_index]
+                labels_train, labels_test = labels[train_index], labels[test_index]
+                print ("perm_width: " + str(perm_width))
+                print ("feat_width: " + str(feat_width))
+                model = create_dualInputLarge(input_ratio=.125, neurons=neuronVar, perm_width=perm_width, feat_width=feat_width, optimizer=optimizerVar)
+        
+                print('\nsplit %i' %i)
+                csv_logger = CSVLogger('log_' + optimizerVar + "_" + str(neuronVar) +'.csv', append=True, separator=',')
+                model.fit([perm_train, feat_train], labels_train, epochs=epochs, batch_size=batch, callbacks=[csv_logger])
+                print("model trained")
+                labels_pred = model.predict([perm_test, feat_test], batch_size=batch)
+                print("prediction made: " +str(labels_pred))
+                labels_pred = (labels_pred > 0.5)
+                print("labels_pred" +str(labels_pred))
+                cm = cm + confusion_matrix(labels_test, labels_pred)
+                i += 1
+            acc = calc_accuracy(cm)
+            print ('average accuracy was: ' + str(acc))
+            
+            precision = calc_precision(cm)
+            print('Average precision was: ' + str(precision))
+            
+            recall = cal_recall(cm)
+            print('Average recall value is: ' + str(recall))
+        
+    
+    #scoring = ['precision', 'accuracy', 'recall', 'f1']
+    
+    #print("creating the loaded model")
+  #  loaded_model = KerasClassifier(build_fn=get_model(model), epochs=epochs, batch_size=batch, verbose=2)
+   # print("calling the cross_validate method")
+   # fit_params = dict(batch_size=batch, epochs=epochs)
 
-    sss = StratifiedShuffleSplit(n_splits=1, random_state=0, test_size=1-tr)
-    i = 0
-    print("stratified shuffle split")
-    for train_index, test_index in sss.split(perm_inputs, labels):
-        perm_train, perm_test = perm_inputs[train_index], perm_inputs[test_index]
-        feat_train, feat_test = feat_inputs[train_index], feat_inputs[test_index]
-        labels_train, labels_test = labels[train_index], labels[test_index]
-        print ("perm_width: " + str(perm_width))
-        print ("feat_width: " + str(feat_width))
-        model = create_dualInputLarge(input_ratio=.125, neurons=neurons, perm_width=perm_width, \
-        feat_width=feat_width)
 
-        print('\nsplit %i' %i)
-        model.fit([perm_train, feat_train], labels_train, epochs=epochs, batch_size=batch)
-        print("model trained")
-        labels_pred = model.predict([perm_test, feat_test], batch_size=batch)
-        print("prediction made: " +str(labels_pred))
-        labels_pred = (labels_pred > 0.5)
-        print("labels_pred" +str(labels_pred))
-        cm = cm + confusion_matrix(labels_test, labels_pred)
-        i += 1
-
-    acc = calc_accuracy(cm)
-    print ('average accuracy was: ' + str(acc))
+    #cv_result = cross_validate(loaded_model, perm_inputs, labels, fit_params=fit_params, cv=sss, return_train_score=True, n_jobs=1, verbose=2)
+    #df = pandas.DataFrame(cv_result)
     
-    precision = calc_precision(cm)
-    print('Average precision was: ' + str(precision))
-    
-    recall = cal_recall(cm)
-    print('Average recall value is: ' + str(recall))
-    
-    
-    scoring = ['precision', 'accuracy', 'recall', 'f1']
-    perm_inputs_1 = perm_inputs
-    print("creating the loaded model")
-    loaded_model = KerasClassifier(build_fn=get_model(model))
-    print("calling the cross_validate method")
-    
-    cv_result = cross_validate(loaded_model, perm_inputs_1, labels, cv=5, return_train_score=True, n_jobs=1)
-    df = pandas.DataFrame(cv_result)
-    
-    path1 = '/home/osboxes/DeepLearningResearch/Demo/test' + '.csv'
-    file1 = open(path1, "a+")
-    df.to_csv(file1, index=True)
-    file1.close()
+    #path1 = '/home/osboxes/DeepLearningResearch/Demo/test' + '.csv'
+   # file1 = open(path1, "a+")
+    #df.to_csv(file1, index=True)
+  #  file1.close()
     
     return
 
@@ -165,7 +180,7 @@ def vectorize(good_path, mal_path):
 
     return perm_inputs, feat_inputs, labels
 
-def create_dualInputLarge(input_ratio, feat_width, perm_width, neurons=32, dropout_rate=0.3):
+def create_dualInputLarge(input_ratio, feat_width, perm_width, neurons=20, dropout_rate=0.3, optimizer='nadam'):
     '''this model performs additional analysis with layers after concatenation'''
     perm_width=int(perm_width)
     perm_input = Input(shape=(perm_width,), name='permissions_input')
@@ -186,7 +201,7 @@ def create_dualInputLarge(input_ratio, feat_width, perm_width, neurons=32, dropo
     x = Dense(int((neurons+(neurons*input_ratio))/2), activation='relu')(x)
     output = Dense(1, activation='sigmoid', name="output")(x)
     model = Model(inputs=[perm_input, feat_input], outputs=output)
-    model.compile(loss='binary_crossentropy', optimizer='nadam', metrics=['accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy', 'Precision', 'Recall'])
     return model
 
 
