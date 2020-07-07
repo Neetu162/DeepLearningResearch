@@ -1,4 +1,5 @@
 from __future__ import division
+import os
 import numpy as np
 import timeit
 import pandas
@@ -26,7 +27,7 @@ def main():
 
     good_path = '/home/osboxes/DeepLearningResearch/Data/mal_badging_full_v2.txt'
     mal_path = '/home/osboxes/DeepLearningResearch/Data/benign_badging_full_v2.txt'
-    results_dir = '/home/osboxes/DeepLearningResearch/Results/shallowResults/imbalanced-'
+    results_dir = '/home/osboxes/DeepLearningResearch/FeatureExtraction/'
 
 
     with open(good_path) as f:
@@ -71,7 +72,7 @@ def main():
 
     #proportion of data to test on vs total
     ratios = [.8, .6, .4, .2]
-    columns = ['avg_acc', 'fpos_rate', 'fneg_rate', 'precision', 'recall',
+    columns = ['train_ratio', 'avg_acc', 'fpos_rate', 'fneg_rate', 'precision', 'recall',
     'f1_score', 'avg_test_time', 'avg_train_time']
     indices = [.2,.4,.6,.8]
     print ("BernoulliNB")
@@ -111,19 +112,8 @@ def main():
         results_to_csv(lgdf, model_name, results_dir, input_type)
         print ('\n')
 
-    '''# alternative to shuffle_split
-    print "stratifiedKFolds"
-    skf = StratifiedKFold(n_splits=5, shuffle=True)
-    for train_index, test_index in skf.split(features, labels):
-        X_train, X_test = features[train_index], features[test_index]
-        y_train, y_test = labels[train_index], labels[test_index]
-
-        BNclf = BernoulliNB()
-        BNclf.fit(X_train, y_train)
-        pred = BNclf.predict(X_test)
-        print accuracy_score(y_test, pred)
-    '''
-
+    
+    
 def test_model(data_frame, model, features, labels, test_size):
     '''
     recieves an instance of an untrained model plus features and labels. performs
@@ -179,18 +169,7 @@ def test_model(data_frame, model, features, labels, test_size):
         avg_tneg_rate += float(true_neg)/test_len
         avg_train_time += time1-time0
         avg_test_time += time2-time1
-        '''
-        more verbose output
-        print 'samples tested: ' + str(test_len)
-        print 'correct predictions: ' + str(correct)
-        print 'false positives: ' + str(f_pos)
-        print 'false negatives: ' + str(f_neg)
-        print '--------'
-        print 'acc rate: ' + str(float(correct)/test_len)
-        print 'false positive rate: ' + str(float(f_pos)/test_len)
-        print 'false negative rate: ' + str(float(f_neg)/test_len)
-        print '\n\n'
-        '''
+        
     avg_acc = avg_acc/5.0
     avg_tpos_rate = avg_tpos_rate/5.0
     avg_tneg_rate = avg_tneg_rate/5.0
@@ -204,7 +183,7 @@ def test_model(data_frame, model, features, labels, test_size):
 
     #append to dataframe
     loc = 1-test_size
-    data_frame.loc[str(loc)] = pandas.Series({'avg_acc':avg_acc, 'fpos_rate':avg_fpos_rate,
+    data_frame.loc[str(loc)] = pandas.Series({'train_ratio': loc, 'avg_acc':avg_acc, 'fpos_rate':avg_fpos_rate,
     'fneg_rate':avg_fneg_rate, 'precision':avg_precision, 'recall':avg_recall,
     'f1_score':avg_f1_score, 'avg_test_time':avg_test_time, 'avg_train_time':avg_train_time})
     print(data_frame)
@@ -221,24 +200,6 @@ def test_model(data_frame, model, features, labels, test_size):
     print ('\n')
     return data_frame
 
-#below function not used
-def full_results(labels, predictions):
-    i = 0
-    correct = 0
-    false_pos = 0
-    false_neg = 0
-    results = acc_stats()
-    while(i < len(labels)):
-        if(labels[i] == predictions[i]):
-            results.inc_correct()
-        elif(labels[i] == 1 and predictions[i] == 0):
-            results.inc_fneg()
-        elif(labels[i] == 0 and predictions[i] == 1):
-            results.inc_fpos()
-        else:
-            print ('shouldnt happen')
-        i+=1
-    results.print_stats()
 
 def results_to_csv(data_frame, model_name, target_dir, input_type):
     '''
@@ -251,8 +212,12 @@ def results_to_csv(data_frame, model_name, target_dir, input_type):
     min = str('%02d' % d.minute)
 
     try:
-        out_target = target_dir + model_name + '_' + input_type + '_' + month + '-' + day + '-' + hour + min + '.csv'
+        out_target = target_dir + model_name + '_' + input_type + '.csv'
         print (out_target)
+        if os.path.exists(out_target):
+              os.remove(out_target)
+        else:
+              print("The file does not exist")
         outfile = open(out_target,'w+')
     except:
         print ('HIT EXCEPTION')

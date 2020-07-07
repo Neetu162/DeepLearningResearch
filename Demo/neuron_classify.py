@@ -9,32 +9,6 @@ from tensorflow.python.keras.layers import deserialize, serialize
 from tensorflow.python.keras.saving import saving_utils
 from tensorflow.keras.callbacks import CSVLogger
 from tensorflow.keras import metrics
-
-def unpack(model, training_config, weights):
-    restored_model = deserialize(model)
-    if training_config is not None:
-        restored_model.compile(
-            **saving_utils.compile_args_from_training_config(
-                training_config
-            )
-        )
-    restored_model.set_weights(weights)
-    return restored_model
-
-# Hotfix function
-def make_keras_picklable():
-
-    def __reduce__(self):
-        model_metadata = saving_utils.model_metadata(self)
-        training_config = model_metadata.get("training_config", None)
-        model = serialize(self)
-        weights = self.get_weights()
-        return (unpack, (model, training_config, weights))
-
-    cls = Model
-    cls.__reduce__ = __reduce__
-
-make_keras_picklable()
 import numpy as np
 import time
 import pandas
@@ -48,10 +22,6 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import confusion_matrix
 
 
-
-def get_model(model):
-    tempmodel = model
-    return tempmodel
 
 def main():
 
@@ -72,66 +42,64 @@ def main():
     print("feat_width: " + str(feat_width))
     
     cm = np.zeros([2,2], dtype=np.int64)
-    #neurons = [10, 20, 30, 40]
-    optimizers=['nadam','adam','RMSprop', 'SGD']
-    #for neuronVar in neurons:
-    for optimizerVar in optimizers:
-            if os.path.exists('log_' + optimizerVar + '.csv'):
-              os.remove('log_' + optimizerVar + '.csv')
-            else:
-              print("The file does not exist")
-            model = create_dualInputLarge(input_ratio=.125, neurons=20, perm_width=perm_width, feat_width=feat_width, optimizer=optimizerVar)
-            plot_model(model, to_file='model.png')
-           # model.summary()
-            time.sleep(1)
-        
-            sss = StratifiedShuffleSplit(n_splits=1, random_state=0, test_size=1-tr)
-            i = 0
-            print("stratified shuffle split")
-            for train_index, test_index in sss.split(perm_inputs, labels):
-                perm_train, perm_test = perm_inputs[train_index], perm_inputs[test_index]
-                feat_train, feat_test = feat_inputs[train_index], feat_inputs[test_index]
-                labels_train, labels_test = labels[train_index], labels[test_index]
-                print ("perm_width: " + str(perm_width))
-                print ("feat_width: " + str(feat_width))
-                model = create_dualInputLarge(input_ratio=.125, neurons=20, perm_width=perm_width, feat_width=feat_width, optimizer=optimizerVar)
-        
-                print('\nsplit %i' %i)
-                csv_logger = CSVLogger('log_' + optimizerVar + '.csv', append=True, separator=',')
-                model.fit([perm_train, feat_train], labels_train, epochs=epochs, batch_size=batch, callbacks=[csv_logger])
-                print("model trained")
-                labels_pred = model.predict([perm_test, feat_test], batch_size=batch)
-                print("prediction made: " +str(labels_pred))
-                labels_pred = (labels_pred > 0.5)
-                print("labels_pred" +str(labels_pred))
-                cm = cm + confusion_matrix(labels_test, labels_pred)
-                i += 1
-            acc = calc_accuracy(cm)
-            print ('average accuracy was: ' + str(acc))
-            
-            precision = calc_precision(cm)
-            print('Average precision was: ' + str(precision))
-            
-            recall = cal_recall(cm)
-            print('Average recall value is: ' + str(recall))
-        
-    
-    #scoring = ['precision', 'accuracy', 'recall', 'f1']
-    
-    #print("creating the loaded model")
-  #  loaded_model = KerasClassifier(build_fn=get_model(model), epochs=epochs, batch_size=batch, verbose=2)
-   # print("calling the cross_validate method")
-   # fit_params = dict(batch_size=batch, epochs=epochs)
+    neurons = [10, 20, 30, 40]
+    for neuronVar in neurons:
+          if os.path.exists('log_' + str(neuronVar) + '.csv'):
+            os.remove('log_' + neuronVar + '.csv')
+          else:
+            print("The file does not exist")
+          model = create_dualInputLarge(input_ratio=.125, neurons=20, perm_width=perm_width, feat_width=feat_width, optimizer='nadam')
+          plot_model(model, to_file='model.png')
+         # model.summary()
+          time.sleep(1)
+      
+          sss = StratifiedShuffleSplit(n_splits=1, random_state=0, test_size=1-tr)
+          i = 0
+          print("stratified shuffle split")
+          for train_index, test_index in sss.split(perm_inputs, labels):
+              perm_train, perm_test = perm_inputs[train_index], perm_inputs[test_index]
+              feat_train, feat_test = feat_inputs[train_index], feat_inputs[test_index]
+              labels_train, labels_test = labels[train_index], labels[test_index]
+              print ("perm_width: " + str(perm_width))
+              print ("feat_width: " + str(feat_width))
+              model = create_dualInputLarge(input_ratio=.125, neurons=20, perm_width=perm_width, feat_width=feat_width, optimizer='nadam')
+      
+              print('\nsplit %i' %i)
+              csv_logger = CSVLogger('log_' + str(neuronVar) + '.csv', append=True, separator=',')
+              model.fit([perm_train, feat_train], labels_train, epochs=epochs, batch_size=batch, callbacks=[csv_logger])
+              print("model trained")
+              labels_pred = model.predict([perm_test, feat_test], batch_size=batch)
+              print("prediction made: " +str(labels_pred))
+              labels_pred = (labels_pred > 0.5)
+              print("labels_pred" +str(labels_pred))
+              cm = cm + confusion_matrix(labels_test, labels_pred)
+              i += 1
+          acc = calc_accuracy(cm)
+          print ('average accuracy was: ' + str(acc))
+          
+          precision = calc_precision(cm)
+          print('Average precision was: ' + str(precision))
+          
+          recall = cal_recall(cm)
+          print('Average recall value is: ' + str(recall))
+      
+  
+  #scoring = ['precision', 'accuracy', 'recall', 'f1']
+  
+  #print("creating the loaded model")
+#  loaded_model = KerasClassifier(build_fn=get_model(model), epochs=epochs, batch_size=batch, verbose=2)
+ # print("calling the cross_validate method")
+ # fit_params = dict(batch_size=batch, epochs=epochs)
 
 
-    #cv_result = cross_validate(loaded_model, perm_inputs, labels, fit_params=fit_params, cv=sss, return_train_score=True, n_jobs=1, verbose=2)
-    #df = pandas.DataFrame(cv_result)
-    
-    #path1 = '/home/osboxes/DeepLearningResearch/Demo/test' + '.csv'
-   # file1 = open(path1, "a+")
-    #df.to_csv(file1, index=True)
-  #  file1.close()
-    
+  #cv_result = cross_validate(loaded_model, perm_inputs, labels, fit_params=fit_params, cv=sss, return_train_score=True, n_jobs=1, verbose=2)
+  #df = pandas.DataFrame(cv_result)
+  
+  #path1 = '/home/osboxes/DeepLearningResearch/Demo/test' + '.csv'
+ # file1 = open(path1, "a+")
+  #df.to_csv(file1, index=True)
+#  file1.close()
+  
     return
 
 def calc_accuracy(cm):

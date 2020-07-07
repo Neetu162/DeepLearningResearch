@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    epoch_acc = open("log.csv", 'r')
+    epoch_acc = open("log_nadam.csv", 'r')
     
     epochAcc_df = pandas.read_csv(epoch_acc)
     
@@ -15,12 +15,12 @@ def main():
     print("accuracy log" + str(accLog))
 
     
-    plt.figure(5)
+    plt.figure(6)
     
-    plt.plot(epochLog, accLog, marker='*', linewidth=1, markersize=13,label='AccuracyVSepoch')
+    plt.plot(epochLog, accLog, marker='*', linewidth=1, markersize=13,label='Accuracy VS epoch')
     
     #plot formatting
-    plt.legend(loc='upper left', fontsize = 18)
+    plt.legend(loc='lower right', fontsize = 18)
     #plt.ylim([.92, .95])
     #plt.title('One Layer Model - Optimizer and Neurons', fontsize=28)
     plt.xlabel('epoch', fontsize = 20)
