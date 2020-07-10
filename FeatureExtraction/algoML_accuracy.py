@@ -14,14 +14,14 @@ def main():
          algo_ratio = algo_df.get("train_ratio")
          
               
-         plt.figure(1)
+         plt.figure(7)
          plt.plot(algo_ratio, algo_score, marker='v',linewidth=1, markersize=13, label=algoVar)
      
          #plot formatting
-         plt.legend(loc='lower right', fontsize = 14)
-         plt.xlabel('Train Ratio', fontsize = 20)
-         plt.ylabel('Accuracy', fontsize = 20)
-         plt.tick_params(labelsize=20)
+         plt.legend(loc='best', fontsize = 10)
+         plt.xlabel('Train Ratio', fontsize = 12)
+         plt.ylabel('Accuracy', fontsize = 12)
+         plt.tick_params(labelsize=14)
          plt.grid()
  
 

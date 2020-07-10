@@ -20,14 +20,12 @@ def main():
     plt.plot(epochLog, accLog, marker='*', linewidth=1, markersize=13,label='Accuracy VS epoch')
     
     #plot formatting
-    plt.legend(loc='lower right', fontsize = 18)
-    #plt.ylim([.92, .95])
-    #plt.title('One Layer Model - Optimizer and Neurons', fontsize=28)
-    plt.xlabel('epoch', fontsize = 20)
-    plt.ylabel('Accuracy', fontsize = 20)
-    plt.tick_params(labelsize=20)
+    #plt.legend(loc='lower right', fontsize = 10)
+    plt.xlabel('epoch', fontsize = 14)
+    plt.ylabel('Accuracy', fontsize = 14)
+    plt.tick_params(labelsize=12)
     plt.grid()
-    #plt.legend([adadelta, adamax, adam, RMSprop, SGD]) #['adadelta', 'adamax', 'adam','nadam', 'RMSprop,', 'SGD'])
+    
 
 
     plt.show()

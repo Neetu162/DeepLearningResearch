@@ -19,10 +19,10 @@ def main():
          plt.plot(epochs, neuron_score, marker='v',linewidth=1, markersize=13, label=str(neuronVar) + " neurons")
  
         #plot formatting
-         plt.legend(loc='lower right', fontsize = 14)
-         plt.xlabel('Epochs', fontsize = 20)
-         plt.ylabel('Accuracy', fontsize = 20)
-         plt.tick_params(labelsize=20)
+         plt.legend(loc='lower right', fontsize = 10)
+         plt.xlabel('Epochs', fontsize = 14)
+         plt.ylabel('Accuracy', fontsize = 14)
+         plt.tick_params(labelsize=12)
          plt.grid()
          
     plt.show()

@@ -1,3 +1,4 @@
+
 import pickle
 import tempfile
 from tensorflow.keras.models import Sequential, load_model, save_model, Model
@@ -32,7 +33,7 @@ def main():
     tr = .80
     batch = 100
     epochs = 10
-    neurons=20
+    neurons=30
 
     perm_inputs, feat_inputs, labels = vectorize(good_path, mal_path)
     print("returned from vectorize method" + str(perm_inputs) + "feat Inputs" + str(feat_inputs) + "labels" + str(labels))
@@ -45,9 +46,11 @@ def main():
     neurons = [10, 20, 30, 40]
     for neuronVar in neurons:
           if os.path.exists('log_' + str(neuronVar) + '.csv'):
-            os.remove('log_' + neuronVar + '.csv')
+            os.remove('log_' + str(neuronVar) + '.csv')
           else:
             print("The file does not exist")
+          
+          print("number of neurons: " + str(neuronVar))
           model = create_dualInputLarge(input_ratio=.125, neurons=20, perm_width=perm_width, feat_width=feat_width, optimizer='nadam')
           plot_model(model, to_file='model.png')
          # model.summary()

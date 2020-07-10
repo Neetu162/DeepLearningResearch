@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jul  5 06:25:58 2020
-
-@author: osboxes
-"""
-
-
 import pandas
 import matplotlib.pyplot as plt
 
@@ -29,12 +20,12 @@ def main():
     plt.plot(epochLog, lossLog, marker='*', linewidth=1, markersize=13,label='Epoch VS loss')
       
     #plot formatting
-    plt.legend(loc='upper right', fontsize = 18)
+    #plt.legend(loc='upper right', fontsize = 10)
     #plt.ylim([.92, .95])
     #plt.title('One Layer Model - Optimizer and Neurons', fontsize=28)
-    plt.xlabel('epoch', fontsize = 20)
-    plt.ylabel('Loss', fontsize = 20)
-    plt.tick_params(labelsize=20)
+    plt.xlabel('epoch', fontsize = 14)
+    plt.ylabel('Loss', fontsize = 14)
+    plt.tick_params(labelsize=12)
     plt.grid()
     #plt.legend([adadelta, adamax, adam, RMSprop, SGD]) #['adadelta', 'adamax', 'adam','nadam', 'RMSprop,', 'SGD'])
 

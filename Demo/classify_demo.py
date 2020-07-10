@@ -80,6 +80,8 @@ def main():
               os.remove('log_' + optimizerVar + '.csv')
             else:
               print("The file does not exist")
+              
+            print("OPTIMIZER: " + str(optimizerVar))
             model = create_dualInputLarge(input_ratio=.125, neurons=20, perm_width=perm_width, feat_width=feat_width, optimizer=optimizerVar)
             plot_model(model, to_file='model.png')
            # model.summary()
@@ -92,8 +94,8 @@ def main():
                 perm_train, perm_test = perm_inputs[train_index], perm_inputs[test_index]
                 feat_train, feat_test = feat_inputs[train_index], feat_inputs[test_index]
                 labels_train, labels_test = labels[train_index], labels[test_index]
-                print ("perm_width: " + str(perm_width))
-                print ("feat_width: " + str(feat_width))
+                #print ("perm_width: " + str(perm_width))
+                #print ("feat_width: " + str(feat_width))
                 model = create_dualInputLarge(input_ratio=.125, neurons=20, perm_width=perm_width, feat_width=feat_width, optimizer=optimizerVar)
         
                 print('\nsplit %i' %i)
@@ -101,9 +103,9 @@ def main():
                 model.fit([perm_train, feat_train], labels_train, epochs=epochs, batch_size=batch, callbacks=[csv_logger])
                 print("model trained")
                 labels_pred = model.predict([perm_test, feat_test], batch_size=batch)
-                print("prediction made: " +str(labels_pred))
+               # print("prediction made: " +str(labels_pred))
                 labels_pred = (labels_pred > 0.5)
-                print("labels_pred" +str(labels_pred))
+                #print("labels_pred" +str(labels_pred))
                 cm = cm + confusion_matrix(labels_test, labels_pred)
                 i += 1
             acc = calc_accuracy(cm)
